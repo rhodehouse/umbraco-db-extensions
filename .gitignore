@@ -28,3 +28,7 @@
 **/obj/Debug/
 **/bin/
 **/.vs/
+**/obj/
+**/obj/Release/
+*.nupkg
+*.nuspec
