@@ -1,6 +1,6 @@
 # Umbraco Database Extensions
 Compatible with UmbracoCms.Core v7.12.2
-## Documentation
+## Documentation (Sync a model class to a database table)
 ### Create a class
 ```
     [PrimaryKey("Id", autoIncrement = true)]
