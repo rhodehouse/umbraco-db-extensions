@@ -32,3 +32,4 @@
 **/obj/Release/
 *.nupkg
 *.nuspec
+**/packages/
