@@ -4,7 +4,7 @@ Compatible with UmbracoCms.Core v7.12.2
 ### Create a class
 ```
     [PrimaryKey("Id", autoIncrement = true)]
-    internal class CalendarEvent : ICalendarEvent
+    internal class CalendarEvent
     {
         private string _event;
         private EventType _eventType;
