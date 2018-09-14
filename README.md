@@ -2,6 +2,7 @@
 Compatible with UmbracoCms.Core v7.12.2
 ## Mirror model class with a database table 
 Sync a model class to a database table. Changes on the class will trigger the database to be updated when executed.
+The SyncTable() method will also retain previous records so no data will be lost
 ### Create a class
 ```
 using Umbraco.Db.Extensions;
