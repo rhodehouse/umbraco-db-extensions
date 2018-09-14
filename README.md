@@ -1,9 +1,11 @@
 # Umbraco Database Extensions
 Compatible with UmbracoCms.Core v7.12.2
-## Documentation 
+## Mirror model class with a database table 
 Sync a model class to a database table. Changes on the class will trigger the database to be updated when executed.
 ### Create a class
 ```
+using Umbraco.Db.Extensions;
+
 [PrimaryKey("Id", autoIncrement = true)]
 internal class CalendarEvent
 {
@@ -69,3 +71,27 @@ internal class CalendarEvent
  ```
  DatabaseManager.SyncTable<CalendarEvent>(factory);
  ```
+ 
+## Handle Multiple Primary Keys
+```
+using Umbraco.Db.Extensions;
+
+public class Calendar
+{
+    [MultiplePrimaryKeys(PrimaryKeyName = "pk_Calendar", PrimaryKeys = new string[2] { "Id_1", "Id_2" })]
+    public short Id_1 { get; set; }
+
+    public short Id_2 { get; set; }
+}
+```
+
+## Handle NVarcharMax
+```
+using Umbraco.Db.Extensions;
+
+public class Calendar
+{
+    [DbExtra(Type = DbExtraType.NVarCharMax)]
+    public string Description { get; set; }
+}
+```
