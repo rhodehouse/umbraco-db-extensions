@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using Umbraco.Core;
 using Umbraco.Core.Persistence;
 
@@ -11,24 +12,22 @@ namespace Umbraco.Db.Extensions
     {
         private static void AddForeignKeys(Database db, IEnumerable<ForeignKey> keys)
         {
+            var sql = new StringBuilder();
             foreach (var key in keys)
             {
-                var sql = $@"alter table {key.FKTABLE_NAME}
-                            add constraint {key.FK_NAME}
-                            foreign key ({key.FKCOLUMN_NAME}) 
-                            references {key.PKTABLE_NAME} ({key.PKCOLUMN_NAME});";
-                db.Execute(sql);
+                sql.AppendLine($"alter table {key.FKTABLE_NAME} add constraint {key.FK_NAME} foreign key ({key.FKCOLUMN_NAME}) references {key.PKTABLE_NAME} ({key.PKCOLUMN_NAME}); ");                
             }
+            db.Execute(sql.ToString());
         }
 
         private static void DeleteForeignKeys(Database db, IEnumerable<ForeignKey> keys)
         {
+            var sql = new StringBuilder();
             foreach (var key in keys)
             {
-                var sql = $@"alter table {key.FKTABLE_NAME}
-                            drop constraint {key.FK_NAME}";
-                db.Execute(sql);
+                sql.AppendLine($"alter table {key.FKTABLE_NAME} drop constraint {key.FK_NAME};");                 
             }
+            db.Execute(sql.ToString());
         }
 
         private static IEnumerable<string> GetConstraintsFromDbTable(Database db, string tableName)
@@ -38,27 +37,6 @@ namespace Umbraco.Db.Extensions
                         where TABLE_NAME = '{tableName}'";
             var constraints = db.Query<QueryResult>(sql);
             return constraints.Select(x => x.Name);
-        }
-
-        private static Action GetDbExtraProcess
-            (Database db, DbExtraAttribute attribute, TableData data, PropertyInfo property)
-        {
-            switch (attribute.Type)
-            {
-                case DbExtraType.MultiplePrimaryKeys:
-                    var attr = (MultiplePrimaryKeysAttribute)attribute;
-                    if (attr != null)
-                    {
-                        return () => db.Execute($@"
-                            ALTER TABLE {data.TableName} 
-                            ADD CONSTRAINT {attr.PrimaryKeyName} PRIMARY KEY ({string.Join(",", attr.PrimaryKeys)})");
-                    }
-                    break;
-                case DbExtraType.NVarCharMax:
-                    return () => db.Execute($"ALTER TABLE {data.TableName} ALTER COLUMN [{property.Name}] NVARCHAR(MAX)");
-            }
-
-            return () => { };
         }
 
         private static IEnumerable<ForeignKey> GetForeignKeys(Database db, string tableName)
@@ -155,12 +133,14 @@ namespace Umbraco.Db.Extensions
                 helper.CreateTable(true, typeof(T));
 
                 // take care of items that Umbraco cannot handle
-                var attributeHelpers = type.GetProperties()
-                    .Select(x => new AttributeHelper<DbExtraAttribute>(x))
-                    .Where(x => x.Attribute != null);
-                foreach (var a in attributeHelpers)
+                var properties = type.GetProperties();
+                foreach(var property in properties)
                 {
-                    GetDbExtraProcess(db, a.Attribute, data, a.Property)();
+                    var dbExtra = property.GetCustomAttribute<DbExtra>();
+                    if(dbExtra != null)
+                    {
+                        dbExtra.Process(db, data, property);
+                    }
                 }
 
                 copy.ForEach((x) => db.Insert(x));
@@ -203,12 +183,15 @@ namespace Umbraco.Db.Extensions
         public static void Uninstall(DatabaseFactory factory, Type type)
         {
             var tableName = type.GetTableName();
-            var foreignKeys = GetForeignKeys(factory.Database, tableName);
-            if (foreignKeys.Any())
+            if(factory.DatabaseHelper.TableExist(tableName))
             {
-                DeleteForeignKeys(factory.Database, foreignKeys);
+                var foreignKeys = GetForeignKeys(factory.Database, tableName);
+                if (foreignKeys.Any())
+                {
+                    DeleteForeignKeys(factory.Database, foreignKeys);
+                }
+                factory.DatabaseHelper.DropTable(tableName);
             }
-            factory.DatabaseHelper.DropTable(tableName);
         }
     }
 
@@ -238,21 +221,6 @@ namespace Umbraco.Db.Extensions
     internal sealed class QueryResult
     {
         public string Name { get; set; }
-    }
-
-    internal sealed class AttributeHelper<T> where T : Attribute
-    {
-        public AttributeHelper() { }
-
-        public AttributeHelper(PropertyInfo property)
-        {
-            Attribute = property.GetCustomAttribute<T>();
-            Property = property;
-        }
-
-        public T Attribute { get; set; }
-
-        public PropertyInfo Property { get; set; }
     }
 
     internal sealed class ForeignKey

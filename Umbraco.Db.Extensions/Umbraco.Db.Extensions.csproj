@@ -210,14 +210,21 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Attribute\DbExtraAttribute.cs" />
+    <Compile Include="Attribute\EncryptAttribute.cs" />
+    <Compile Include="Attribute\DbExtra.cs" />
+    <Compile Include="Attribute\MultiplePrimaryKeysAttribute.cs" />
     <Compile Include="DatabaseFactory.cs" />
     <Compile Include="DatabaseManager.cs" />
+    <Compile Include="Encryption\AesEncryption.cs" />
+    <Compile Include="Encryption\EncryptedPoco.cs" />
+    <Compile Include="Encryption\EncryptionResult.cs" />
+    <Compile Include="Encryption\IEncrypt.cs" />
+    <Compile Include="Extension\DatabaseExtension.cs" />
     <Compile Include="Extension\TypeExtension.cs" />
     <Compile Include="Extension\XmlExtension.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RepositoryHelper\DatabaseSync.cs" />
     <Compile Include="RepositoryHelper\IDatabaseSync.cs" />
-    <Compile Include="RepositoryHelper\RepositoryManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
