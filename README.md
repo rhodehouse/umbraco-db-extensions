@@ -100,8 +100,8 @@ public class Calendar
 ## Handle Encryption
 1. Create a class and inherit the IEncrypt interface
 2. Create two properties 
-    a. Actual property needed for application (add Encrypt argument)
-    b. Property to hold key for encyrption/decryption (good idea to hide this property from being exposed)
+- Actual property needed for application (add Encrypt argument)
+- Property to hold key for encyrption/decryption (good idea to hide this property from being exposed)
 3. Use extensions added to Umbraco Database for Save, Fetch, First, FirstOrDefault, Insert, and Save
 ```
 using Umbraco.Db.Extensions;
