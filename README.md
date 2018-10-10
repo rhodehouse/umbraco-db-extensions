@@ -96,3 +96,42 @@ public class Calendar
     public string Description { get; set; }
 }
 ```
+
+## Handle Encryption
+1. Create a class and inherit the IEncrypt interface
+2. Create two properties 
+    a. Actual property needed for application (add Encrypt argument)
+    b. Property to hold key for encyrption/decryption (good idea to hide this property from being exposed)
+3. Use extensions added to Umbraco Database for Save, Fetch, First, FirstOrDefault, Insert, and Save
+```
+using Umbraco.Db.Extensions;
+
+public class TestConnection : IEncrypt
+{
+    [Encrypt(KeyPropertyName = "ConnectionKey")]
+    [Length(2000)]
+    public string Connection { get; set; }
+    
+    [JsonIgnore]
+    [XmlIgnore]
+    public string ConnectionKey { get; set; }
+}
+
+public static class TestConnectionRepository
+{
+    public static T Add<T>(Database database, T poco)
+    {
+        return database.Insert(poco, useEncryption: true);
+    }
+
+    public static List<object> Get(Database database)
+    {
+        return database.Fetch("select * from TestConnection with (nolock)", useDecryption: true);
+    }
+
+    public static void Save(Database database, object poco)
+    {
+        database.Save(poco, useEncryption: true);
+    }
+}
+```
