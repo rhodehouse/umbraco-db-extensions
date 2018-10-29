@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using Umbraco.Core.Persistence;
 
 namespace Umbraco.Db.Extensions
@@ -117,6 +118,19 @@ namespace Umbraco.Db.Extensions
             return dto;
         }
 
+        public static void Delete<T>(this Database db, Type pocoClass, T primaryKeyValue)
+        {
+            var primaryKey = pocoClass.GetPrimaryKeyName();
+            if(string.IsNullOrEmpty(primaryKey))
+            {
+                throw new Exception("Primary Key attribute hasn't been assigned to this class");
+            }
+            var tableName = pocoClass.GetTableName();
+            
+            var sql = $"delete from {tableName} where {primaryKey} = @id";
+            db.Execute(sql, new { id = primaryKeyValue });
+        }
+
         public static List<T> Fetch<T>(this Database db, string sql, bool useDecryption) where T : IEncrypt
         {
             var pocos = db.Fetch<T>(sql);
@@ -164,6 +178,35 @@ namespace Umbraco.Db.Extensions
                 Encrypt(poco);
             }
             db.Save(poco);
+        }
+
+        public static void ShiftSortOrder(this Database db, Type pocoClass, int start, int? end = null)
+        {
+            var column = pocoClass.GetSortOrderColumnName();
+            if (string.IsNullOrEmpty(column))
+            {
+                throw new Exception("The SortOrder attribute hasn't been assigned to this class");
+            }
+            var tableName = pocoClass.GetTableName();
+            var sql = new StringBuilder();
+            sql.AppendFormat("update {0} set {1} = {1} + 1 where {1} >= {2}", tableName, column, start);
+            if(end.HasValue)
+            {
+                sql.AppendFormat(" and {0} < {1}", column, end.Value);
+            }            
+            db.Execute(sql.ToString());
+        }
+
+        public static void UnshiftSortOrder(this Database db, Type pocoClass, int high, int low)
+        {
+            var column = pocoClass.GetSortOrderColumnName();
+            if (string.IsNullOrEmpty(column))
+            {
+                throw new Exception("The SortOrder attribute hasn't been assigned to this class");
+            }
+            var tableName = pocoClass.GetTableName();
+            var sql = $"update {tableName} set {column} = {column} - 1 where {column} > {low} and {column} <= {high}";
+            db.Execute(sql);
         }
     }
 

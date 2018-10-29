@@ -213,6 +213,7 @@
     <Compile Include="Attribute\EncryptAttribute.cs" />
     <Compile Include="Attribute\DbExtra.cs" />
     <Compile Include="Attribute\MultiplePrimaryKeysAttribute.cs" />
+    <Compile Include="Attribute\SortOrderAttribute.cs" />
     <Compile Include="DatabaseFactory.cs" />
     <Compile Include="DatabaseManager.cs" />
     <Compile Include="Encryption\AesEncryption.cs" />
